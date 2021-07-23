@@ -11,14 +11,23 @@ DLL_EXPORT void CreateImageProcessor()
 	Processor = new ImageProcessor();
 }
 
+DLL_EXPORT void DestroyImageProcessor()
+{
+	if (Processor == nullptr)
+		return;
+
+	delete Processor;
+	Processor = nullptr;
+}
+
 DLL_EXPORT void SetDebugPath(const char* path)
 {
 	Processor->SetDebugPath(path);
 }
 
-DLL_EXPORT ComplexityCalculationResult* CalculateDraftComplexity(ComplexityCalculationData calculationData)
+DLL_EXPORT ComplexityCalculationResult* CalculateObjectComplexity(ComplexityCalculationData calculationData)
 {
-	return Processor->CalculateDraftComplexity(calculationData);
+	return Processor->CalculateObjectComplexity(calculationData);
 }
 
 void DisposeCalculationResult(ComplexityCalculationResult* result)
@@ -27,14 +36,5 @@ void DisposeCalculationResult(ComplexityCalculationResult* result)
 	{
 		delete result;
 		result = nullptr;
-	}
-}
-
-DLL_EXPORT void DestroyImageProcessor()
-{
-	if (Processor)
-	{
-		delete Processor;
-		Processor = nullptr;
 	}
 }

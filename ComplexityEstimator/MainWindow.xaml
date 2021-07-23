@@ -6,8 +6,37 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ComplexityEstimator"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
-
+		ResizeMode="CanMinimize"
+		WindowStartupLocation="CenterScreen" 
+		SizeToContent="WidthAndHeight"
+        Title="Complexity calculator"
+		Height="450"
+		Width="800">
+	<Window.DataContext>
+		<local:MainWindowVm/>
+	</Window.DataContext>
+	<Grid>
+		<Grid.RowDefinitions>
+			<RowDefinition/>
+			<RowDefinition/>
+			<RowDefinition/>
+		</Grid.RowDefinitions>
+		<StackPanel Grid.Row="0"
+					Orientation="Horizontal"
+					Margin="5">
+			<TextBox Width="200"
+					   Height="25"
+					   Margin="2"
+					 Text="{Binding InputFilePath, Mode=TwoWay}"/>
+			<Button Content="Выбрать файл..."
+					Height="Auto"
+					Width="Auto"
+					Margin="2"
+					Command="{Binding SelectFileCommand}"/>
+		</StackPanel>
+		<StackPanel Grid.Row="1" Margin="5">
+			<Button Content="Обработать файл"
+					Command="{Binding ProcessFileCommand}"/>
+		</StackPanel>
     </Grid>
 </Window>

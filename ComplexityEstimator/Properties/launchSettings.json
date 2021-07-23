@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "ComplexityEstimator": {
+      "commandName": "Project",
+      "nativeDebugging": true
+    }
+  }
+}

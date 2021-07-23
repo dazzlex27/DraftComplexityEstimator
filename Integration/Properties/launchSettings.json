@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Integration": {
+      "commandName": "Project",
+      "nativeDebugging": true
+    }
+  }
+}

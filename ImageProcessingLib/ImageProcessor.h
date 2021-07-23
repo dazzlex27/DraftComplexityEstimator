@@ -20,7 +20,7 @@ public:
 	ImageProcessor();
 	~ImageProcessor();
 
-	ComplexityCalculationResult* CalculateDraftComplexity(const ComplexityCalculationData& data);
+	ComplexityCalculationResult* CalculateObjectComplexity(const ComplexityCalculationData& data);
 	void SetDebugPath(const char* path);
 
 private:

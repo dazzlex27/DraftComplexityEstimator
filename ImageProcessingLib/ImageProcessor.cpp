@@ -25,7 +25,7 @@ ImageProcessor::~ImageProcessor()
 	}
 }
 
-ComplexityCalculationResult* ImageProcessor::CalculateDraftComplexity(const ComplexityCalculationData& data)
+ComplexityCalculationResult* ImageProcessor::CalculateObjectComplexity(const ComplexityCalculationData& data)
 {
 	auto result = new ComplexityCalculationResult();
 	result->Complexity = -1;
@@ -40,7 +40,7 @@ ComplexityCalculationResult* ImageProcessor::CalculateDraftComplexity(const Comp
 	const auto image = GetCvImage(*(data.ColorImage));
 
 	const Contour& objectContour = GetTargetContourFromImage(image);
-	if (!objectContour.size() == 0)
+	if (objectContour.size() == 0)
 	{
 		result->Status = ComplexityCalculationStatus::NoObjectFound;
 		return result;
@@ -183,10 +183,10 @@ const float ImageProcessor::CalculateComplexity(const cv::Mat& image, const Cont
 			if (!valueIsInContour)
 				continue;
 
-			if (pixelValue > 0)
-				numOfValuePixels++;
-			else
+			if (pixelValue > 100)
 				numOfEmptyPixels++;
+			else
+				numOfValuePixels++;
 		}
 	}
 
