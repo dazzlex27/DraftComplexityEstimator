@@ -90,12 +90,12 @@
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="DmUtils.cpp" />
+    <ClCompile Include="ImageUtils.cpp" />
     <ClCompile Include="ImageProcessor.cpp" />
     <ClCompile Include="ImageProcessingLibAPI.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="DmUtils.h" />
+    <ClInclude Include="ImageUtils.h" />
     <ClInclude Include="OpenCVInclude.h" />
     <ClInclude Include="Structures.h" />
     <ClInclude Include="ImageProcessor.h" />

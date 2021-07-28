@@ -24,9 +24,11 @@ public:
 	void SetDebugPath(const char* path);
 
 private:
-	const cv::Mat GetCvImage(const ColorImage& image);
+	const cv::Mat GetGrayscaleImage(const ColorImage& image);
 	const Contour GetLargestContour(const std::vector<Contour>& contours) const;
 	void FillColorBufferFromImage(const ColorImage& image);
 	const Contour GetTargetContourFromImage(const cv::Mat& image) const;
-	const float CalculateComplexity(const cv::Mat& image, const Contour& colorObjectContour);
+	const float CalculateComplexity(const cv::Mat& image, const Contour& colorObjectContour, const std::string& debugFileName);
+	void DrawDebugData(const cv::Mat& inputImage, const Contour& objectContour, const Contour& rotatedRectContour,
+		const std::string& debugFileName);
 };

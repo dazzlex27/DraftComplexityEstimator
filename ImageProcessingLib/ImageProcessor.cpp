@@ -4,7 +4,7 @@
 #include <climits>
 #include <cstdlib>
 #include <ctime>
-#include "DmUtils.h"
+#include "ImageUtils.h"
 #include <fstream>
 
 ImageProcessor::ImageProcessor()
@@ -37,23 +37,19 @@ ComplexityCalculationResult* ImageProcessor::CalculateObjectComplexity(const Com
 		return result;
 	}
 
-	const auto image = GetCvImage(*(data.ColorImage));
+	const auto image = GetGrayscaleImage(*(data.ColorImage));
 
-	const Contour& objectContour = GetTargetContourFromImage(image);
+	cv::Mat paddedImage;
+	copyMakeBorder(image, paddedImage, 50, 50, 50, 50, cv::BORDER_REPLICATE);
+
+	const Contour& objectContour = GetTargetContourFromImage(paddedImage);
 	if (objectContour.size() == 0)
 	{
 		result->Status = ComplexityCalculationStatus::NoObjectFound;
 		return result;
 	}
 
-	const std::string debugFileName(data.DebugFileName);
-	if (_debugPath != "" && debugFileName != "")
-	{
-		const std::string& colorFilename = _debugPath + "/" + debugFileName + "_ctr.png";
-		DmUtils::DrawTargetContour(objectContour, _imageWidth, _imageHeight, colorFilename);
-	}
-
-	const float complexity = CalculateComplexity(image, objectContour);
+	const float complexity = CalculateComplexity(paddedImage, objectContour, std::string(data.DebugFileName));
 
 	if (complexity < 0)
 	{
@@ -72,14 +68,15 @@ void ImageProcessor::SetDebugPath(const char* path)
 	_debugPath = std::string(path);
 }
 
-const cv::Mat ImageProcessor::GetCvImage(const ColorImage& image)
+const cv::Mat ImageProcessor::GetGrayscaleImage(const ColorImage& image)
 {
 	FillColorBufferFromImage(image);
-	const int cvChannelsCode = DmUtils::GetCvChannelsCodeFromBytesPerPixel(_imageBytesPerPixel);
+	const int cvChannelsCode = ImageUtils::GetCvChannelsCodeFromBytesPerPixel(_imageBytesPerPixel);
 	cv::Mat cvImage(_imageHeight, _imageWidth, cvChannelsCode, _colorImageBuffer);
-	const int colorToGrayscaleConversionCode = DmUtils::GetCvGrayScaleConversionCode(cvChannelsCode);
-	if (colorToGrayscaleConversionCode != 0)
-		cv::cvtColor(cvImage, cvImage, colorToGrayscaleConversionCode);
+	if (cvChannelsCode == CV_8UC4)
+		cv::cvtColor(cvImage, cvImage, cv::COLOR_BGRA2BGR);
+
+	cv::cvtColor(cvImage, cvImage, cv::COLOR_BGR2GRAY);
 
 	return cvImage;
 }
@@ -155,21 +152,21 @@ const Contour ImageProcessor::GetTargetContourFromImage(const cv::Mat& image) co
 	return mergedContour;
 }
 
-const float ImageProcessor::CalculateComplexity(const cv::Mat& image, const Contour& colorObjectContour)
+const float ImageProcessor::CalculateComplexity(const cv::Mat& image, const Contour& objectContour, const std::string& debugFileName)
 {
-	const auto minBoundingRect = cv::minAreaRect(colorObjectContour);
+	const auto minBoundingRect = cv::minAreaRect(objectContour);
 	cv::Rect upRightBoundingRect = minBoundingRect.boundingRect();
 
-	cv::Mat roiImage = image(upRightBoundingRect);
+	const int pointCount = 4;
+	cv::Point2f minRectPoints[4];
+	minBoundingRect.points(minRectPoints);
+	Contour minRectContour;
+	minRectContour.reserve(4);
+	for (int i = 0; i < pointCount; i++)
+		minRectContour.emplace_back(minRectPoints[i]);
 
-	cv::Point2f minBoundingRectPoints[4];
-	minBoundingRect.points(minBoundingRectPoints);
-	std::vector<cv::Point2f> minBoundingRectPointArray;
-	minBoundingRectPointArray.reserve(4);
-	minBoundingRectPointArray.emplace_back(minBoundingRectPoints[0]);
-	minBoundingRectPointArray.emplace_back(minBoundingRectPoints[1]);
-	minBoundingRectPointArray.emplace_back(minBoundingRectPoints[2]);
-	minBoundingRectPointArray.emplace_back(minBoundingRectPoints[3]);
+	if (_debugPath != "" && debugFileName != "")
+		DrawDebugData(image, objectContour, minRectContour, debugFileName);
 
 	int numOfEmptyPixels = 0;
 	int numOfValuePixels = 0;
@@ -178,12 +175,12 @@ const float ImageProcessor::CalculateComplexity(const cv::Mat& image, const Cont
 	{
 		for (int i = upRightBoundingRect.x; i < upRightBoundingRect.x + upRightBoundingRect.width; i++)
 		{
-			const byte pixelValue = roiImage.data[j * roiImage.cols + i];
-			const bool valueIsInContour = cv::pointPolygonTest(minBoundingRectPointArray, cv::Point(i, j), false) >= 0.0;
+			const byte pixelValue = image.data[j * image.cols + i];
+			const bool valueIsInContour = cv::pointPolygonTest(minRectContour, cv::Point(i, j), false) >= 0.0;
 			if (!valueIsInContour)
 				continue;
 
-			if (pixelValue > 100)
+			if (pixelValue > 125)
 				numOfEmptyPixels++;
 			else
 				numOfValuePixels++;
@@ -195,4 +192,14 @@ const float ImageProcessor::CalculateComplexity(const cv::Mat& image, const Cont
 		return -1;
 
 	return (float)numOfValuePixels / totalNumOfMinRectPixels;
+}
+
+void ImageProcessor::DrawDebugData(const cv::Mat& inputImage, const Contour& objectContour, const Contour& rotatedRectContour, 
+	const std::string& debugFileName)
+{
+	auto matForRect = cv::Mat(inputImage);
+	cv::cvtColor(matForRect, matForRect, cv::COLOR_GRAY2BGR);
+	ImageUtils::DrawContour(matForRect, rotatedRectContour, cv::Scalar(0, 255, 0));
+	const std::string& rectFilename = _debugPath + "/" + debugFileName + "_rect.png";
+	cv::imwrite(rectFilename, matForRect);
 }

@@ -74,8 +74,8 @@ namespace Integration
 						continue;
 
 					var imageData = ImageUtils.GetImageDataFromBitmap(innerBitmap);
-					var debugImagePath = $"{drawingKey}_{DateTime.Now.Ticks}.png";
-					ImageUtils.SaveImageDataToFile(imageData, Path.Combine(_debugDirectory, debugImagePath));
+					//var debugImagePath = $"{drawingKey}_{DateTime.Now.Ticks}.png";
+					//ImageUtils.SaveImageDataToFile(imageData, Path.Combine(_debugDirectory, debugImagePath));
 
 					var complexity = CalculateComplexity(imageData, drawingKey);
 

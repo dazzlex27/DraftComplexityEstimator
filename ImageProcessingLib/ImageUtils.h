@@ -3,12 +3,12 @@
 #include "Structures.h"
 #include "OpenCVInclude.h"
 
-class DmUtils
+class ImageUtils
 {
 public:
 	static const std::vector<Contour> GetValidContours(const std::vector<Contour>& contours, const float minAreaRatio, const int imageDataLength);
 	static const int GetCvChannelsCodeFromBytesPerPixel(const int bytesPerPixel);
-	static const int GetCvGrayScaleConversionCode(const int cvColorCode);
-	static void DrawTargetContour(const Contour& contour, const int width, const int height, const std::string& filename);
+	static cv::Mat CreateEmptyMat(const int width, const int height, const int colorCode);
+	static void DrawContour(cv::Mat& image, const Contour& contour, const cv::Scalar& color);
 	static bool IsPointInsidePolygon(const std::vector<cv::Point>& polygon, int x, int y);
 };
