@@ -1,4 +1,4 @@
-﻿namespace Integration
+﻿namespace ImageProcessor
 {
 	internal class ImageData
 	{

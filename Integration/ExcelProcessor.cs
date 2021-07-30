@@ -1,4 +1,4 @@
-﻿using ComplexityEstimator.Native;
+﻿using ImageProcessor.Native;
 using OfficeOpenXml;
 using OfficeOpenXml.Drawing;
 using System;
@@ -7,7 +7,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 
-namespace Integration
+namespace ImageProcessor
 {
 	public class ExcelProcessor : IDisposable
 	{
@@ -77,9 +77,9 @@ namespace Integration
 					//var debugImagePath = $"{drawingKey}_{DateTime.Now.Ticks}.png";
 					//ImageUtils.SaveImageDataToFile(imageData, Path.Combine(_debugDirectory, debugImagePath));
 
-					var complexity = CalculateComplexity(imageData, drawingKey);
+					var complexityInfo = CalculateComplexity(imageData, drawingKey);
 
-					calculationSamples.Add(drawingKey, new CalculationSample(imageData, complexity));
+					calculationSamples.Add(drawingKey, new CalculationSample(imageData, complexityInfo));
 				}
 
 				return calculationSamples;
@@ -96,6 +96,8 @@ namespace Integration
 		{
 			const int colToWrite = 8;
 			sheet.Cells[1, colToWrite].Value = "Сложность";
+			sheet.Cells[1, colToWrite + 1].Value = "Ширина";
+			sheet.Cells[1, colToWrite + 2].Value = "Высота";
 
 			foreach (var key in calculationSamples.Keys)
 			{
@@ -106,11 +108,15 @@ namespace Integration
 
 				var rowToWrite = col == 0 ? row : row + 1;
 
-				sheet.Cells[rowToWrite, colToWrite].Value = calculationSamples[key].Complexity;
+				var info = calculationSamples[key].ComplexityInfo;
+
+				sheet.Cells[rowToWrite, colToWrite].Value = info.Complexity;
+				sheet.Cells[rowToWrite, colToWrite + 1].Value = info.ContourWidth;
+				sheet.Cells[rowToWrite, colToWrite + 2].Value = info.ContourHeight;
 			}
 		}
 
-		private float CalculateComplexity(ImageData image, string drawingKey)
+		private ComplexityInfo CalculateComplexity(ImageData image, string drawingKey)
 		{
 			lock (_lock)
 			{
@@ -135,13 +141,19 @@ namespace Integration
 						var calculationResult = ImageProcessingDll.CalculateObjectComplexity(calculationData);
 
 						var complexity = -1.0f;
+						var contourWidth = -1;
+						var contourHeight = -1;
 
 						if (calculationResult->Status == ComplexityCalculationStatus.Success)
+						{
 							complexity = calculationResult->Complexity;
+							contourWidth = calculationResult->ContourWidth;
+							contourHeight = calculationResult->ContourHeight;
+						}
 
 						ImageProcessingDll.DisposeCalculationResult(calculationResult);
 
-						return complexity;
+						return new ComplexityInfo(complexity, contourWidth, contourHeight);
 					}
 				}
 			}

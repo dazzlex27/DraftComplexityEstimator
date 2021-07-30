@@ -1,11 +1,13 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace ComplexityEstimator.Native
+namespace ImageProcessor.Native
 {
 	[StructLayout(LayoutKind.Sequential)]
 	internal struct ComplexityCalculationResult
 	{
-		public float Complexity;
 		public ComplexityCalculationStatus Status;
+		public float Complexity;
+		public int ContourWidth;
+		public int ContourHeight;
 	}
 }

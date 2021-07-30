@@ -1,4 +1,4 @@
-﻿namespace ComplexityEstimator.Native
+﻿namespace ImageProcessor.Native
 {
 	internal enum ComplexityCalculationStatus
 	{

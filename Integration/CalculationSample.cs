@@ -1,15 +1,17 @@
-﻿namespace Integration
+﻿using ImageProcessor;
+
+namespace ImageProcessor
 {
 	internal class CalculationSample
 	{
 		public ImageData Image { get; }
 
-		public float Complexity { get; } // [0-1]
+		public ComplexityInfo ComplexityInfo { get; } // [0-1], int, int
 
-		public CalculationSample(ImageData image, float complexity)
+		public CalculationSample(ImageData image, ComplexityInfo complexityInfo)
 		{
 			Image = image;
-			Complexity = complexity;
+			ComplexityInfo = complexityInfo;
 		}
 	}
 }

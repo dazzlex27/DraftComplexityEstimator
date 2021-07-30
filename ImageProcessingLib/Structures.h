@@ -31,6 +31,8 @@ struct ComplexityCalculationData
 
 struct ComplexityCalculationResult
 {
-	float Complexity;
 	ComplexityCalculationStatus Status;
+	float Complexity;
+	int ContourWidth;
+	int ContourHeight;
 };

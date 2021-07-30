@@ -1,6 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace ComplexityEstimator.Native
+namespace ImageProcessor.Native
 {
 	internal static class ImageProcessingDll
 	{

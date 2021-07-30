@@ -49,7 +49,8 @@ ComplexityCalculationResult* ImageProcessor::CalculateObjectComplexity(const Com
 		return result;
 	}
 
-	const float complexity = CalculateComplexity(paddedImage, objectContour, std::string(data.DebugFileName));
+	const auto minBoundingRect = cv::minAreaRect(objectContour);
+	const float complexity = CalculateComplexity(paddedImage, objectContour, minBoundingRect, std::string(data.DebugFileName));
 
 	if (complexity < 0)
 	{
@@ -57,8 +58,10 @@ ComplexityCalculationResult* ImageProcessor::CalculateObjectComplexity(const Com
 		return result;
 	}
 
-	result->Complexity = complexity;
 	result->Status = ComplexityCalculationStatus::Success;
+	result->Complexity = complexity;
+	result->ContourWidth = (int)std::round(minBoundingRect.size.width);
+	result->ContourHeight = (int)std::round(minBoundingRect.size.height);
 
 	return result;
 }
@@ -152,9 +155,9 @@ const Contour ImageProcessor::GetTargetContourFromImage(const cv::Mat& image) co
 	return mergedContour;
 }
 
-const float ImageProcessor::CalculateComplexity(const cv::Mat& image, const Contour& objectContour, const std::string& debugFileName)
+const float ImageProcessor::CalculateComplexity(const cv::Mat& image, const Contour& objectContour,
+	const cv::RotatedRect& minBoundingRect,	const std::string& debugFileName)
 {
-	const auto minBoundingRect = cv::minAreaRect(objectContour);
 	cv::Rect upRightBoundingRect = minBoundingRect.boundingRect();
 
 	const int pointCount = 4;
