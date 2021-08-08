@@ -9,27 +9,25 @@
 
 ImageProcessor::ImageProcessor()
 {
-	_imageWidth = 0;
-	_imageHeight = 0;
-	_imageLengthBytes = 0;
-	_imageBytesPerPixel = 0;
-	_colorImageBuffer = nullptr;
+	_multiplier = 0;
+	_power = 0;
+	_gainFactor = 0;
+	_smallDetailGainFactor = 0;
+	_performanceRate = 0;
 }
 
 ImageProcessor::~ImageProcessor()
 {
-	if (_colorImageBuffer != nullptr)
-	{
-		delete[] _colorImageBuffer;
-		_colorImageBuffer = nullptr;
-	}
 }
 
 ComplexityCalculationResult* ImageProcessor::CalculateObjectComplexity(const ComplexityCalculationData& data)
 {
 	auto result = new ComplexityCalculationResult();
-	result->Complexity = -1;
 	result->Status = ComplexityCalculationStatus::Undefined;
+	result->LaborIntensity = -1;
+	result->TotalComplexity = -1;
+	result->CalculatedComplexity = -1;
+	result->PresumedComplexity = -1;
 
 	if (data.ColorImage == nullptr || data.ColorImage->Data == nullptr)
 	{
@@ -50,33 +48,69 @@ ComplexityCalculationResult* ImageProcessor::CalculateObjectComplexity(const Com
 	}
 
 	const auto minBoundingRect = cv::minAreaRect(objectContour);
-	const float complexity = CalculateComplexity(paddedImage, objectContour, minBoundingRect, std::string(data.DebugFileName));
 
-	if (complexity < 0)
+	// Ht
+	const float calculatedComplexity = GetCalculatedComplexity(paddedImage, objectContour, minBoundingRect, std::string(data.DebugFileName));
+	if (calculatedComplexity < 0)
+	{
+		result->Status = ComplexityCalculationStatus::CalculationError;
+		return result;
+	}
+
+	// Hp
+	const float presumedComplexity = GetPresumedComplexity(data.PartWidth, data.PartHeight);
+	if (presumedComplexity < 0)
+	{
+		result->Status = ComplexityCalculationStatus::CalculationError;
+		return result;
+	}
+
+	// H
+	const float totalComplexity = GetTotalComplexity(calculatedComplexity, presumedComplexity);
+	if (totalComplexity < 0)
+	{
+		result->Status = ComplexityCalculationStatus::CalculationError;
+		return result;
+	}
+
+	// T
+	const int partArea = data.PartWidth * data.PartHeight;
+	const float laborIntensity = GetLaborIntensity(partArea, totalComplexity);
+	if (laborIntensity < 0)
 	{
 		result->Status = ComplexityCalculationStatus::CalculationError;
 		return result;
 	}
 
 	result->Status = ComplexityCalculationStatus::Success;
-	result->Complexity = complexity;
-	result->ContourWidth = (int)std::round(minBoundingRect.size.width);
-	result->ContourHeight = (int)std::round(minBoundingRect.size.height);
+	result->LaborIntensity = laborIntensity;
+	result->TotalComplexity = totalComplexity;
+	result->CalculatedComplexity = calculatedComplexity;
+	result->PresumedComplexity = presumedComplexity;
 
 	return result;
 }
 
-void ImageProcessor::SetDebugPath(const char* path)
+void ImageProcessor::SetCalculationParams(ComplexityCalculationParams parameters)
 {
-	_debugPath = std::string(path);
+	_multiplier = parameters.Multiplier;
+	_power = parameters.Power;
+	_gainFactor = parameters.GainFactor;
+	_smallDetailGainFactor = parameters.SmallDetailGainFactor;
+	_performanceRate = parameters.PerformanceRate;
+}
+
+void ImageProcessor::SetDebugParams(const bool enableDebug, const char* debugPath)
+{
+	_enableDebug = enableDebug;
+	_debugPath = std::string(debugPath);
 }
 
 const cv::Mat ImageProcessor::GetGrayscaleImage(const ColorImage& image)
 {
-	FillColorBufferFromImage(image);
-	const int cvChannelsCode = ImageUtils::GetCvChannelsCodeFromBytesPerPixel(_imageBytesPerPixel);
-	cv::Mat cvImage(_imageHeight, _imageWidth, cvChannelsCode, _colorImageBuffer);
-	if (cvChannelsCode == CV_8UC4)
+	const int cvChannelsCode = ImageUtils::GetCvChannelsCodeFromBytesPerPixel(image.BytesPerPixel);
+	cv::Mat cvImage(image.Height, image.Width, cvChannelsCode, image.Data);
+	if (cvChannelsCode == CV_8UC4) // TODO: create a buffer to hold the BGR image
 		cv::cvtColor(cvImage, cvImage, cv::COLOR_BGRA2BGR);
 
 	cv::cvtColor(cvImage, cvImage, cv::COLOR_BGR2GRAY);
@@ -108,26 +142,6 @@ const Contour ImageProcessor::GetLargestContour(const std::vector<Contour>& cont
 	return largestContour;
 }
 
-void ImageProcessor::FillColorBufferFromImage(const ColorImage& image)
-{
-	const bool dimsAreTheSame = _imageWidth == image.Width && _imageHeight == image.Height && 
-		_imageLengthBytes == image.BytesPerPixel;
-	if (!dimsAreTheSame)
-	{
-		_imageWidth = image.Width;
-		_imageHeight = image.Height;
-		const int colorImageLength = image.Width * image.Height;
-		_imageLengthBytes = colorImageLength * image.BytesPerPixel;
-		_imageBytesPerPixel = image.BytesPerPixel;
-
-		if (_colorImageBuffer != nullptr)
-			delete[] _colorImageBuffer;
-		_colorImageBuffer = new byte[_imageLengthBytes];
-	}
-
-	memcpy(_colorImageBuffer, image.Data, _imageLengthBytes);
-}
-
 const Contour ImageProcessor::GetTargetContourFromImage(const cv::Mat& image) const
 {
 	const bool imageIsValid = image.cols > 0 && image.rows > 0 && image.data != nullptr;
@@ -155,7 +169,7 @@ const Contour ImageProcessor::GetTargetContourFromImage(const cv::Mat& image) co
 	return mergedContour;
 }
 
-const float ImageProcessor::CalculateComplexity(const cv::Mat& image, const Contour& objectContour,
+const float ImageProcessor::GetCalculatedComplexity(const cv::Mat& image, const Contour& objectContour,
 	const cv::RotatedRect& minBoundingRect,	const std::string& debugFileName)
 {
 	cv::Rect upRightBoundingRect = minBoundingRect.boundingRect();
@@ -168,7 +182,7 @@ const float ImageProcessor::CalculateComplexity(const cv::Mat& image, const Cont
 	for (int i = 0; i < pointCount; i++)
 		minRectContour.emplace_back(minRectPoints[i]);
 
-	if (_debugPath != "" && debugFileName != "")
+	if (_enableDebug && _debugPath != "" && debugFileName != "")
 		DrawDebugData(image, objectContour, minRectContour, debugFileName);
 
 	int numOfEmptyPixels = 0;
@@ -195,6 +209,29 @@ const float ImageProcessor::CalculateComplexity(const cv::Mat& image, const Cont
 		return -1;
 
 	return (float)numOfValuePixels / totalNumOfMinRectPixels;
+}
+
+const float ImageProcessor::GetPresumedComplexity(const int partWidth, const int partHeight)
+{
+	const float minDim = (float)(partWidth < partHeight ? partWidth : partHeight);
+	const float maxDim = (float)(partWidth > partHeight ? partWidth : partHeight);
+
+	return _multiplier * (float)std::pow(minDim / maxDim, _power);
+}
+
+const float ImageProcessor::GetTotalComplexity(const float calculatedComplexity, const float presumedComplexity)
+{
+	if (calculatedComplexity <= presumedComplexity)
+		return 1;
+	
+	return std::pow(calculatedComplexity - presumedComplexity + 1, _gainFactor);
+}
+
+const float ImageProcessor::GetLaborIntensity(const int partArea, const float totalComplexity)
+{
+	const float partAreaM2 = (float)partArea / (float)std::pow(1000, 2);
+
+	return (float)std::pow(partAreaM2, 1 / _smallDetailGainFactor) * totalComplexity * _performanceRate;
 }
 
 void ImageProcessor::DrawDebugData(const cv::Mat& inputImage, const Contour& objectContour, const Contour& rotatedRectContour, 

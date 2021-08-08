@@ -1,6 +1,6 @@
-﻿namespace ImageProcessor
+﻿namespace Primitives
 {
-	internal class ImageData
+	public class ImageData
 	{
 		public int Width { get; }
 

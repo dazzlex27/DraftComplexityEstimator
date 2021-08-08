@@ -13,7 +13,10 @@ namespace ImageProcessor.Native
 		public static extern void DestroyImageProcessor();
 
 		[DllImport(AnalyzerLibName, CallingConvention = CallingConvention.Cdecl)]
-		public static extern void SetDebugPath(string path);
+		public static extern void SetCalculationParams(ComplexityCalculationParams parameters);
+
+		[DllImport(AnalyzerLibName, CallingConvention = CallingConvention.Cdecl)]
+		public static extern void SetDebugParams(bool enableDebug, string debugPath);
 
 		[DllImport(AnalyzerLibName, CallingConvention = CallingConvention.Cdecl)]
 		public static extern unsafe ComplexityCalculationResult* CalculateObjectComplexity(ComplexityCalculationData data);

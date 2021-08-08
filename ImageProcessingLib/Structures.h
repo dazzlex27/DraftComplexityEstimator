@@ -23,16 +23,28 @@ struct ColorImage
 	byte BytesPerPixel;
 };
 
+struct ComplexityCalculationParams
+{
+	float Multiplier;
+	float Power;
+	float GainFactor;
+	float SmallDetailGainFactor;
+	float PerformanceRate;
+};
+
 struct ComplexityCalculationData
 {
 	const ColorImage* ColorImage;
+	const int PartWidth;
+	const int PartHeight;
 	const char DebugFileName[128];
 };
 
 struct ComplexityCalculationResult
 {
 	ComplexityCalculationStatus Status;
-	float Complexity;
-	int ContourWidth;
-	int ContourHeight;
+	float LaborIntensity;
+	float TotalComplexity;
+	float CalculatedComplexity;
+	float PresumedComplexity;
 };

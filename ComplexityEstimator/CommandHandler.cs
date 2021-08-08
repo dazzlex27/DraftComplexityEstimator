@@ -16,19 +16,10 @@ namespace ComplexityEstimator
 			_canExecute = canExecute;
 		}
 
-		public bool CanExecute(object parameter)
-		{
-			return _canExecute;
-		}
+		public bool CanExecute(object parameter) => _canExecute;
 
-		public void Execute(object parameter)
-		{
-			_action();
-		}
+		public void Execute(object parameter) => _action();
 
-		public void FireCanExecuteChanged()
-		{
-			CanExecuteChanged?.Invoke(null, null);
-		}
+		public void FireCanExecuteChanged() => CanExecuteChanged?.Invoke(null, null);
 	}
 }

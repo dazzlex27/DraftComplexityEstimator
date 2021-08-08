@@ -9,6 +9,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ImageProcessingLib", "Image
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Integration", "Integration\Integration.csproj", "{FC6E8C12-5E57-4FFD-97BD-F070D01BC513}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Primitives", "Primitives\Primitives.csproj", "{A156D787-9C9D-4679-A913-8FB8D906F5C6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -26,6 +28,11 @@ Global
 		{FC6E8C12-5E57-4FFD-97BD-F070D01BC513}.Debug|x64.ActiveCfg = Debug|x64
 		{FC6E8C12-5E57-4FFD-97BD-F070D01BC513}.Debug|x64.Build.0 = Debug|x64
 		{FC6E8C12-5E57-4FFD-97BD-F070D01BC513}.Release|x64.ActiveCfg = Release|x64
+		{FC6E8C12-5E57-4FFD-97BD-F070D01BC513}.Release|x64.Build.0 = Release|x64
+		{A156D787-9C9D-4679-A913-8FB8D906F5C6}.Debug|x64.ActiveCfg = Debug|x64
+		{A156D787-9C9D-4679-A913-8FB8D906F5C6}.Debug|x64.Build.0 = Debug|x64
+		{A156D787-9C9D-4679-A913-8FB8D906F5C6}.Release|x64.ActiveCfg = Release|x64
+		{A156D787-9C9D-4679-A913-8FB8D906F5C6}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,37 +1,67 @@
 ﻿using ImageProcessor;
 using Microsoft.Win32;
+using Primitives;
 using System;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Input;
 
 namespace ComplexityEstimator
 {
-	internal class MainWindowVm : BaseViewModel
+	internal class MainWindowVm : BaseViewModel, IDisposable
 	{
 		private const string ProcessedFileSuffix = "_processed";
 
-		private ExcelProcessor _excelProcessor;
+		private CalculationSettings _settings;
+		private readonly FileProcessor _fileProcessor;
 
 		private string _inputFilePath;
 
 		public MainWindowVm()
 		{
-			_excelProcessor = new ExcelProcessor();
 			InputFilePath = "";
 			SelectFileCommand = new CommandHandler(SelectFile, true);
 			ProcessFileCommand = new CommandHandler(ProcessFile, true);
+			OpenSettingsCommand = new CommandHandler(OpenSettingsWindow, true);
+			ShutDownCommand = new CommandHandler(ShutDown, true);
+
+			try
+			{
+				var settingsFromFile = IoUtils.DeserializeSettings();
+				if (settingsFromFile == null)
+				{
+					_settings = CalculationSettings.GetDefaultSettings();
+					IoUtils.SerializeSettings(_settings);
+				}
+				else
+					_settings = settingsFromFile;
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show($"Не удалось прочитать настройки: {ex.Message}, будут использованы настройки по умолчанию");
+			}
+
+			_fileProcessor = new FileProcessor();
+			_fileProcessor.SetCalculationSettings(_settings);
 		}
 
 		public ICommand SelectFileCommand { get; }
+
 		public ICommand ProcessFileCommand { get; }
+
+		public ICommand OpenSettingsCommand { get; }
+
+		public ICommand ShutDownCommand { get; }
 
 		public string InputFilePath
 		{
 			get => _inputFilePath;
 			set => SetField(ref _inputFilePath, value, nameof(InputFilePath));
 		}
+
+		public void Dispose() => _fileProcessor.Dispose();
 
 		private void SelectFile()
 		{
@@ -69,7 +99,7 @@ namespace ComplexityEstimator
 				}
 
 				outputFileName = GetCopyFileName(InputFilePath);
-				_excelProcessor.ProcessXlsx(InputFilePath, outputFileName);
+				_fileProcessor.ProcessXlsx(InputFilePath, outputFileName);
 
 				ShowInfoMessage($"Готово! Файл сохранен по адресу оригинала с суффиксом \"{ProcessedFileSuffix}\"");
 			}
@@ -80,15 +110,11 @@ namespace ComplexityEstimator
 			}
 		}
 
-		private static void ShowInfoMessage(string message)
-		{
+		private static void ShowInfoMessage(string message) =>
 			MessageBox.Show(message, "Информация", MessageBoxButton.OK, MessageBoxImage.Information);
-		}
 
-		private static void ShowErrorMessage(string message)
-		{
+		private static void ShowErrorMessage(string message) =>
 			MessageBox.Show(message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
-		}
 
 		private void TryDeleteProcessedFile(string processedFileName)
 		{
@@ -111,5 +137,32 @@ namespace ComplexityEstimator
 
 			return outputFileName;
 		}
+
+		private void OpenSettingsWindow()
+		{
+			try
+			{
+				var settingsWindowVm = new SettingsWindowVm(_settings);
+
+				var settingsWindow = new SettingsWindow
+				{
+					Owner = Application.Current.Windows.OfType<Window>().SingleOrDefault(x => x.IsActive),
+					DataContext = settingsWindowVm
+				};
+
+				var settingsChanged = settingsWindow.ShowDialog() == true;
+				if (!settingsChanged)
+					return;
+
+				_settings = settingsWindowVm.GetSettings();
+				IoUtils.SerializeSettings(_settings);
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show($"Во время задания настроек произошла ошибка: {ex.Message}", "Ошибка");
+			}
+		}
+
+		private void ShutDown() => Environment.Exit(0);
 	}
 }

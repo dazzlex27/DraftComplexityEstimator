@@ -1,4 +1,4 @@
-﻿using ImageProcessor;
+﻿using Primitives;
 
 namespace ImageProcessor
 {

@@ -20,9 +20,14 @@ DLL_EXPORT void DestroyImageProcessor()
 	Processor = nullptr;
 }
 
-DLL_EXPORT void SetDebugPath(const char* path)
+DLL_EXPORT void SetCalculationParams(ComplexityCalculationParams parameters)
 {
-	Processor->SetDebugPath(path);
+	Processor->SetCalculationParams(parameters);
+}
+
+DLL_EXPORT void SetDebugParams(const bool enableDebug, const char* debugPath)
+{
+	Processor->SetDebugParams(enableDebug, debugPath);
 }
 
 DLL_EXPORT ComplexityCalculationResult* CalculateObjectComplexity(ComplexityCalculationData calculationData)

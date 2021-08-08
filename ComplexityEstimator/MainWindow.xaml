@@ -21,7 +21,13 @@
 			<RowDefinition/>
 			<RowDefinition/>
 		</Grid.RowDefinitions>
-		<StackPanel Grid.Row="0"
+		<Menu>
+			<MenuItem Header="Действия" IsTabStop="False">
+				<MenuItem Header="Открыть настройки" Command="{Binding OpenSettingsCommand}"/>
+				<MenuItem Header="Завершить работу" Command="{Binding ShutDownCommand}"/>
+			</MenuItem>
+		</Menu>
+		<StackPanel Grid.Row="1"
 					Orientation="Horizontal"
 					Margin="5">
 			<TextBox Width="200"
@@ -34,7 +40,7 @@
 					Margin="2"
 					Command="{Binding SelectFileCommand}"/>
 		</StackPanel>
-		<StackPanel Grid.Row="1" Margin="5">
+		<StackPanel Grid.Row="2" Margin="5">
 			<Button Content="Обработать файл"
 					Command="{Binding ProcessFileCommand}"/>
 		</StackPanel>

@@ -22,4 +22,8 @@
     <PackageReference Include="EPPlus" Version="5.7.2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Primitives\Primitives.csproj" />
+  </ItemGroup>
+
 </Project>
