@@ -24,7 +24,7 @@ ComplexityCalculationResult* ImageProcessor::CalculateObjectComplexity(const Com
 {
 	auto result = new ComplexityCalculationResult();
 	result->Status = ComplexityCalculationStatus::Undefined;
-	result->LaborIntensity = -1;
+	result->LaborIntensityMinutes = -1;
 	result->TotalComplexity = -1;
 	result->CalculatedComplexity = -1;
 	result->PresumedComplexity = -1;
@@ -75,15 +75,15 @@ ComplexityCalculationResult* ImageProcessor::CalculateObjectComplexity(const Com
 
 	// T
 	const int partArea = data.PartWidth * data.PartHeight;
-	const float laborIntensity = GetLaborIntensity(partArea, totalComplexity);
-	if (laborIntensity < 0)
+	const int laborIntensityMinutes = GetLaborIntensityMinutes(partArea, totalComplexity);
+	if (laborIntensityMinutes < 0)
 	{
 		result->Status = ComplexityCalculationStatus::CalculationError;
 		return result;
 	}
 
 	result->Status = ComplexityCalculationStatus::Success;
-	result->LaborIntensity = laborIntensity;
+	result->LaborIntensityMinutes = laborIntensityMinutes;
 	result->TotalComplexity = totalComplexity;
 	result->CalculatedComplexity = calculatedComplexity;
 	result->PresumedComplexity = presumedComplexity;
@@ -227,11 +227,13 @@ const float ImageProcessor::GetTotalComplexity(const float calculatedComplexity,
 	return std::pow(calculatedComplexity - presumedComplexity + 1, _gainFactor);
 }
 
-const float ImageProcessor::GetLaborIntensity(const int partArea, const float totalComplexity)
+const int ImageProcessor::GetLaborIntensityMinutes(const int partArea, const float totalComplexity)
 {
 	const float partAreaM2 = (float)partArea / (float)std::pow(1000, 2);
 
-	return (float)std::pow(partAreaM2, 1 / _smallDetailGainFactor) * totalComplexity * _performanceRate;
+	const double laborIntensityHours = std::pow(partAreaM2, 1 / _smallDetailGainFactor) * totalComplexity * _performanceRate;
+
+	return (int)std::round(laborIntensityHours * 60);
 }
 
 void ImageProcessor::DrawDebugData(const cv::Mat& inputImage, const Contour& objectContour, const Contour& rotatedRectContour, 

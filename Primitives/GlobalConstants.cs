@@ -10,14 +10,11 @@ namespace Primitives
 		public static readonly string ConfigFilePath;
 		public static readonly string DefaultDebugDirectory;
 
-		private static readonly string MyDocumentsPath;
-		private static readonly string AppName;
-
 		static GlobalConstants()
 		{
-			MyDocumentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-			AppName = Process.GetCurrentProcess().ProcessName;
-			AppConfigPath = Path.Combine(MyDocumentsPath, AppName);
+			var myDocumentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+			var appName = Process.GetCurrentProcess().ProcessName;
+			AppConfigPath = Path.Combine(myDocumentsPath, appName);
 			ConfigFilePath = Path.Combine(AppConfigPath, "settings.cfg");
 			DefaultDebugDirectory = Path.Combine(AppConfigPath, "output");
 		}

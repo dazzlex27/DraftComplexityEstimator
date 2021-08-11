@@ -34,7 +34,7 @@ private:
 		const std::string& debugFileName);
 	const float GetPresumedComplexity(const int partWidth, const int partHeight);
 	const float GetTotalComplexity(const float calculatedComplexity, const float presumedComplexity);
-	const float GetLaborIntensity(const int partArea, const float totalComplexity);
+	const int GetLaborIntensityMinutes(const int partArea, const float totalComplexity);
 	void DrawDebugData(const cv::Mat& inputImage, const Contour& objectContour, const Contour& rotatedRectContour,
 		const std::string& debugFileName);
 };

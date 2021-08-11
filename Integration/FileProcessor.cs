@@ -156,14 +156,14 @@ namespace ImageProcessor
 
 						var calculationResult = ImageProcessingDll.CalculateObjectComplexity(calculationData);
 
-						var laborIntensity = -1.0f;
+						var laborIntensityMinutes = -1.0f;
 						var totalComplexity = -1.0f;
 						var calculatedComplexity = -1.0f;
 						var presumedComplexity = -1.0f;
 
 						if (calculationResult->Status == ComplexityCalculationStatus.Success)
 						{
-							laborIntensity = calculationResult->LaborIntensity;
+							laborIntensityMinutes = calculationResult->LaborIntensityMinutes;
 							totalComplexity = calculationResult->TotalComplexity;
 							calculatedComplexity = calculationResult->CalculatedComplexity;
 							presumedComplexity = calculationResult->PresumedComplexity;
@@ -171,7 +171,7 @@ namespace ImageProcessor
 
 						ImageProcessingDll.DisposeCalculationResult(calculationResult);
 
-						return new ComplexityInfo(laborIntensity, totalComplexity, calculatedComplexity, presumedComplexity);
+						return new ComplexityInfo(laborIntensityMinutes, totalComplexity, calculatedComplexity, presumedComplexity);
 					}
 				}
 			}

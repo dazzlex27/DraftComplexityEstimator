@@ -43,7 +43,7 @@ struct ComplexityCalculationData
 struct ComplexityCalculationResult
 {
 	ComplexityCalculationStatus Status;
-	float LaborIntensity;
+	int LaborIntensityMinutes;
 	float TotalComplexity;
 	float CalculatedComplexity;
 	float PresumedComplexity;

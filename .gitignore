@@ -1,5 +1,6 @@
 /!!bin
-.vs
+.vs/
+.idea/
 */bin/
 */obj/
 *.user

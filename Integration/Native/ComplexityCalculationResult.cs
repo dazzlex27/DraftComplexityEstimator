@@ -6,7 +6,7 @@ namespace ImageProcessor.Native
 	internal struct ComplexityCalculationResult
 	{
 		public ComplexityCalculationStatus Status;
-		public float LaborIntensity;
+		public int LaborIntensityMinutes;
 		public float TotalComplexity;
 		public float CalculatedComplexity;
 		public float PresumedComplexity;
