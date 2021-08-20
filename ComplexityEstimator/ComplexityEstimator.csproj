@@ -25,7 +25,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <ProjectReference Include="..\Integration\Integration.csproj" />
+    <ProjectReference Include="..\ImageProcessor\ImageProcessor.csproj" />
     <ProjectReference Include="..\Primitives\Primitives.csproj" />
   </ItemGroup>
 

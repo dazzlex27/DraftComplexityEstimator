@@ -1,30 +1,35 @@
 ﻿using Newtonsoft.Json;
-using Primitives;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace ComplexityEstimator
 {
 	internal static class IoUtils
 	{
-		public static void SerializeSettings(CalculationSettings settings)
+		public static async Task SerializeSettingsToFile<T>(T settings, string filename)
 		{
-			Directory.CreateDirectory(GlobalConstants.AppConfigPath);
+			var logFileInfo = new FileInfo(filename);
+			if (!string.IsNullOrEmpty(logFileInfo.DirectoryName))
+				Directory.CreateDirectory(logFileInfo.DirectoryName);
+			
 			if (settings == null)
 				return;
 
 			var settingsText = JsonConvert.SerializeObject(settings);
-			File.WriteAllText(GlobalConstants.ConfigFilePath, settingsText);
+			await File.WriteAllTextAsync(filename, settingsText);
 		}
 
-		public static CalculationSettings DeserializeSettings()
+		public static async Task<T> DeserializeSettingsFromFile<T>(string filename)
 		{
-			Directory.CreateDirectory(GlobalConstants.AppConfigPath);
-			if (!File.Exists(GlobalConstants.ConfigFilePath))
-				return null;
+			var configFileInfo = new FileInfo(filename);
+			if (!string.IsNullOrEmpty(configFileInfo.DirectoryName))
+				Directory.CreateDirectory(configFileInfo.DirectoryName);
+			
+			if (!configFileInfo.Exists)
+				return default;
 
-			var settingsText = File.ReadAllText(GlobalConstants.ConfigFilePath);
-
-			return JsonConvert.DeserializeObject<CalculationSettings>(settingsText);
+			var settingsText = await File.ReadAllTextAsync(configFileInfo.FullName);
+			return JsonConvert.DeserializeObject<T>(settingsText);
 		}
 	}
 }

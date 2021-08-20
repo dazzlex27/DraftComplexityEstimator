@@ -4,7 +4,7 @@ namespace ImageProcessor.Native
 {
 	internal static class ImageProcessingDll
 	{
-		public const string AnalyzerLibName = "ImageProcessingLib.dll";
+		private const string AnalyzerLibName = "ImageProcessingLib.dll";
 
 		[DllImport(AnalyzerLibName, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void CreateImageProcessor();

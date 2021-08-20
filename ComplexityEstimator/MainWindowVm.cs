@@ -5,6 +5,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 
@@ -12,10 +13,11 @@ namespace ComplexityEstimator
 {
 	internal class MainWindowVm : BaseViewModel, IDisposable
 	{
+		private static readonly string ConfigPath = GlobalConstants.ConfigFilePath;
 		private const string ProcessedFileSuffix = "_processed";
 
 		private CalculationSettings _settings;
-		private readonly FileProcessor _fileProcessor;
+		private FileProcessor _fileProcessor;
 
 		private string _inputFilePath;
 
@@ -26,23 +28,12 @@ namespace ComplexityEstimator
 			ProcessFileCommand = new CommandHandler(ProcessFile, true);
 			OpenSettingsCommand = new CommandHandler(OpenSettingsWindow, true);
 			ShutDownCommand = new CommandHandler(ShutDown, true);
-
-			try
-			{
-				var settingsFromFile = IoUtils.DeserializeSettings();
-				if (settingsFromFile == null)
-				{
-					_settings = CalculationSettings.GetDefaultSettings();
-					IoUtils.SerializeSettings(_settings);
-				}
-				else
-					_settings = settingsFromFile;
-			}
-			catch (Exception ex)
-			{
-				MessageBox.Show($"Не удалось прочитать настройки: {ex.Message}, будут использованы настройки по умолчанию");
-			}
-
+		}
+		
+		public async Task LoadDataAsync()
+		{
+			await InitializeSettings();
+			
 			_fileProcessor = new FileProcessor();
 			_fileProcessor.SetCalculationSettings(_settings);
 		}
@@ -61,7 +52,7 @@ namespace ComplexityEstimator
 			set => SetField(ref _inputFilePath, value, nameof(InputFilePath));
 		}
 
-		public void Dispose() => _fileProcessor.Dispose();
+		public void Dispose() => _fileProcessor?.Dispose();
 
 		private void SelectFile()
 		{
@@ -138,7 +129,7 @@ namespace ComplexityEstimator
 			return outputFileName;
 		}
 
-		private void OpenSettingsWindow()
+		private async void OpenSettingsWindow()
 		{
 			try
 			{
@@ -155,11 +146,30 @@ namespace ComplexityEstimator
 					return;
 
 				_settings = settingsWindowVm.GetSettings();
-				IoUtils.SerializeSettings(_settings);
+				await IoUtils.SerializeSettingsToFile(_settings, ConfigPath);
 			}
 			catch (Exception ex)
 			{
 				MessageBox.Show($"Во время задания настроек произошла ошибка: {ex.Message}", "Ошибка");
+			}
+		}
+		
+		private async Task InitializeSettings()
+		{
+			try
+			{
+				var settingsFromFile = await IoUtils.DeserializeSettingsFromFile<CalculationSettings>(ConfigPath);
+				if (settingsFromFile == null)
+				{
+					_settings = CalculationSettings.GetDefaultSettings();
+					await IoUtils.SerializeSettingsToFile(_settings, ConfigPath);
+				}
+				else
+					_settings = settingsFromFile;
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show($"Не удалось прочитать настройки: {ex.Message}, будут использованы настройки по умолчанию");
 			}
 		}
 

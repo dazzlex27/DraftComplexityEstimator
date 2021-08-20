@@ -4,7 +4,7 @@ using System.Diagnostics;
 
 namespace Primitives
 {
-	public class GlobalConstants
+	public static class GlobalConstants
 	{
 		public static readonly string AppConfigPath;
 		public static readonly string ConfigFilePath;

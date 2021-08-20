@@ -1,6 +1,6 @@
 {
   "profiles": {
-    "Integration": {
+    "ImageProcessor": {
       "commandName": "Project",
       "nativeDebugging": true
     }
