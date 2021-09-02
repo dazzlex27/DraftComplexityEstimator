@@ -1,10 +1,10 @@
-﻿using Newtonsoft.Json;
-using System.IO;
+﻿using System.IO;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
-namespace ComplexityEstimator
+namespace Primitives
 {
-	internal static class IoUtils
+	public static class IoUtils
 	{
 		public static async Task SerializeSettingsToFile<T>(T settings, string filename)
 		{

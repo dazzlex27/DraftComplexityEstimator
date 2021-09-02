@@ -6,6 +6,8 @@ namespace Primitives
 {
 	public static class GlobalConstants
 	{
+		public const string ProcessedFileSuffix = "_processed";
+		
 		public static readonly string AppConfigPath;
 		public static readonly string ConfigFilePath;
 		public static readonly string DefaultDebugDirectory;

@@ -11,6 +11,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ImageProcessor", "ImageProc
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Primitives", "Primitives\Primitives.csproj", "{A156D787-9C9D-4679-A913-8FB8D906F5C6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EstimatorConsole", "EstimatorConsole\EstimatorConsole.csproj", "{78559BA5-1AE2-435D-B138-3497DC21F947}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -33,6 +35,10 @@ Global
 		{A156D787-9C9D-4679-A913-8FB8D906F5C6}.Debug|x64.Build.0 = Debug|x64
 		{A156D787-9C9D-4679-A913-8FB8D906F5C6}.Release|x64.ActiveCfg = Release|x64
 		{A156D787-9C9D-4679-A913-8FB8D906F5C6}.Release|x64.Build.0 = Release|x64
+		{78559BA5-1AE2-435D-B138-3497DC21F947}.Debug|x64.ActiveCfg = Debug|x64
+		{78559BA5-1AE2-435D-B138-3497DC21F947}.Debug|x64.Build.0 = Debug|x64
+		{78559BA5-1AE2-435D-B138-3497DC21F947}.Release|x64.ActiveCfg = Release|x64
+		{78559BA5-1AE2-435D-B138-3497DC21F947}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

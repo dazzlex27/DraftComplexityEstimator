@@ -69,3 +69,21 @@ bool ImageUtils::IsPointInsidePolygon(const std::vector<cv::Point>& polygon, int
 
 	return pointIsInPolygon;
 }
+
+cv::Mat ImageUtils::RemoveAlphaChannel(const cv::Mat& image, const cv::Scalar& backgroundColor)
+{
+	std::vector<cv::Mat> channels(4);
+	cv::split(image, channels);
+
+	channels[0].setTo(cv::Scalar(backgroundColor[0]), channels[3] == 0);
+	channels[1].setTo(cv::Scalar(backgroundColor[1]), channels[3] == 0);
+	channels[2].setTo(cv::Scalar(backgroundColor[2]), channels[3] == 0);
+
+	cv::Mat mergedImage;
+	cv::merge(channels, mergedImage);
+
+	cv::Mat bgrImage;
+	cv::cvtColor(mergedImage, bgrImage, cv::COLOR_BGRA2BGR);
+
+	return bgrImage;
+}

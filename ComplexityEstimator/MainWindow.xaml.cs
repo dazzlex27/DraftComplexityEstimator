@@ -21,7 +21,7 @@ namespace ComplexityEstimator
 				Activate();
 				await _vm.LoadDataAsync();
 			}
-			catch (Exception)
+			catch (Exception ex)
 			{
 				//
 			}

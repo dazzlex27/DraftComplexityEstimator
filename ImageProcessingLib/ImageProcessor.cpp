@@ -35,10 +35,10 @@ ComplexityCalculationResult* ImageProcessor::CalculateObjectComplexity(const Com
 		return result;
 	}
 
-	const auto image = GetGrayscaleImage(*(data.ColorImage));
+	const auto grayscaleImage = GetGrayscaleImage(*(data.ColorImage));
 
 	cv::Mat paddedImage;
-	copyMakeBorder(image, paddedImage, 50, 50, 50, 50, cv::BORDER_REPLICATE);
+	copyMakeBorder(grayscaleImage, paddedImage, 50, 50, 50, 50, cv::BORDER_REPLICATE);
 
 	const Contour& objectContour = GetTargetContourFromImage(paddedImage);
 	if (objectContour.size() == 0)
@@ -111,7 +111,7 @@ const cv::Mat ImageProcessor::GetGrayscaleImage(const ColorImage& image)
 	const int cvChannelsCode = ImageUtils::GetCvChannelsCodeFromBytesPerPixel(image.BytesPerPixel);
 	cv::Mat cvImage(image.Height, image.Width, cvChannelsCode, image.Data);
 	if (cvChannelsCode == CV_8UC4) // TODO: create a buffer to hold the BGR image
-		cv::cvtColor(cvImage, cvImage, cv::COLOR_BGRA2BGR);
+		cvImage = ImageUtils::RemoveAlphaChannel(cvImage, cv::Scalar(255, 255, 255));
 
 	cv::cvtColor(cvImage, cvImage, cv::COLOR_BGR2GRAY);
 

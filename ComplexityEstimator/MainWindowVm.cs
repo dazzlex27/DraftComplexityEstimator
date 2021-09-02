@@ -14,7 +14,6 @@ namespace ComplexityEstimator
 	internal class MainWindowVm : BaseViewModel, IDisposable
 	{
 		private static readonly string ConfigPath = GlobalConstants.ConfigFilePath;
-		private const string ProcessedFileSuffix = "_processed";
 
 		private CalculationSettings _settings;
 		private FileProcessor _fileProcessor;
@@ -60,7 +59,7 @@ namespace ComplexityEstimator
 			{
 				var dialog = new OpenFileDialog
 				{
-					Filter = "xlsx files|*.xlsx",
+					Filter = "excel files|*.xlsx;*.xlsm",
 					DefaultExt = "xlsx",
 					Multiselect = false,
 					InitialDirectory = Assembly.GetEntryAssembly().Location
@@ -79,8 +78,6 @@ namespace ComplexityEstimator
 
 		private void ProcessFile()
 		{
-			var outputFileName = "";
-
 			try
 			{
 				if (!File.Exists(InputFilePath))
@@ -89,15 +86,13 @@ namespace ComplexityEstimator
 					return;
 				}
 
-				outputFileName = GetCopyFileName(InputFilePath);
-				_fileProcessor.ProcessXlsx(InputFilePath, outputFileName);
+				_fileProcessor.ProcessXlsx(InputFilePath);
 
-				ShowInfoMessage($"Готово! Файл сохранен по адресу оригинала с суффиксом \"{ProcessedFileSuffix}\"");
+				ShowInfoMessage($"Готово! Файл сохранен по адресу оригинала с суффиксом \"{GlobalConstants.ProcessedFileSuffix}\"");
 			}
 			catch (Exception ex)
 			{
 				ShowErrorMessage($"Произошла ошибка: {ex.Message}");
-				TryDeleteProcessedFile(outputFileName);
 			}
 		}
 
@@ -106,28 +101,6 @@ namespace ComplexityEstimator
 
 		private static void ShowErrorMessage(string message) =>
 			MessageBox.Show(message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
-
-		private void TryDeleteProcessedFile(string processedFileName)
-		{
-			try
-			{
-				if (File.Exists(processedFileName))
-					File.Delete(processedFileName);
-			}
-			catch { }
-		}
-
-		private string GetCopyFileName(string inputFilePath)
-		{
-			var baseDirectory = Path.GetDirectoryName(inputFilePath);
-			var fileNameWithoutExt = Path.GetFileNameWithoutExtension(inputFilePath);
-			var extension = Path.GetExtension(inputFilePath);
-			var fileNameWithSuffix = $"{fileNameWithoutExt}{ProcessedFileSuffix}{extension}";
-			var outputFileName = Path.Combine(baseDirectory, fileNameWithSuffix);
-			TryDeleteProcessedFile(outputFileName);
-
-			return outputFileName;
-		}
 
 		private async void OpenSettingsWindow()
 		{

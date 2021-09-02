@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "EstimatorConsole": {
+      "commandName": "Project",
+      "commandLineArgs": "EstimatorConsole.exe C:\\Dev\\!Repo\\DraftComplexityEstimator\\samples\\Карты_штрих_код1.xlsx"
+    }
+  }
+}

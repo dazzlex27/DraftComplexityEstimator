@@ -24,23 +24,35 @@ namespace ImageProcessor
 
 		public void Dispose() => ImageProcessingDll.DestroyImageProcessor();
 
-		public void ProcessXlsx(string filePath, string outputPath)
+		public void ProcessXlsx(string filePath)
 		{
-			var ms = new MemoryStream();
-			using (var fs = File.OpenRead(filePath))
-			using (var package = new ExcelPackage(fs))
+			var outputPath = "";
+			
+			try
 			{
-				foreach (var sheet in package.Workbook.Worksheets)
+				using (var fs = File.OpenRead(filePath))
+				using (var package = new ExcelPackage(fs))
 				{
-					if (sheet.Name.ToLower().Contains("пусто"))
-						continue;
+					foreach (var sheet in package.Workbook.Worksheets)
+					{
+						if (sheet.Name.ToLower().Contains("пусто"))
+							continue;
 
-					var calculationSamples = GetSamplesFromSheet(sheet);
-					SaveResultsToSheet(sheet, calculationSamples);
+						var calculationSamples = GetSamplesFromSheet(sheet);
+						SaveResultsToSheet(sheet, calculationSamples);
+					}
+
+					outputPath = GetCopyFileName(filePath);
+					var outputFileInfo = new FileInfo(outputPath);
+					package.SaveAs(outputFileInfo);
 				}
+			}
+			catch (Exception)
+			{
+				if (!string.IsNullOrEmpty(outputPath))
+					TryDeleteProcessedFile(outputPath);
 
-				var outputFileInfo = new FileInfo(outputPath);
-				package.SaveAs(outputFileInfo);
+				throw;
 			}
 		}
 
@@ -66,27 +78,24 @@ namespace ImageProcessor
 			{
 				var calculationSamples = new Dictionary<string, CalculationSample>();
 
-				var lkDrawings = sheet.Drawings.ToLookup(x => $"{ x.From.Row}_{x.From.Column}");
+				var lkDrawings = sheet.Drawings.ToLookup(x => $"{x.From.Row}_{x.From.Column}");
 
 				foreach (var drawing in lkDrawings)
 				{
 					var drawingKey = drawing.Key;
 
-					ExcelPicture image = lkDrawings[drawingKey].ToList()[0] as ExcelPicture;
-					if (image == null)
-						continue;
-
-					var innerBitmap = image.Image as Bitmap;
+					var image = lkDrawings[drawingKey].ToList()[0] as ExcelPicture;
+					var innerBitmap = image?.Image as Bitmap;
 					if (innerBitmap == null)
 						continue;
 
-					var keyItems = ParseImageLookupKey(drawingKey);
-					var dimensionsString = sheet.Cells[keyItems.Item1 + 1, keyItems.Item2 + 2].Value.ToString();
-					var dimensions = ParsePartDimensions(dimensionsString);
+					var (row, col) = ParseImageLookupKey(drawingKey);
+					var dimensionsString = sheet.Cells[row + 1, col + 2].Value.ToString();
+					var (width, height) = ParsePartDimensions(dimensionsString);
 
 					ResetDebugDirectory();
 					var imageData = ImageUtils.GetImageDataFromBitmap(innerBitmap);
-					var complexityInfo = CalculateComplexity(imageData, drawingKey, dimensions.Item1, dimensions.Item2);
+					var complexityInfo = CalculateComplexity(imageData, drawingKey, width, height);
 
 					calculationSamples.Add(drawingKey, new CalculationSample(imageData, complexityInfo));
 				}
@@ -101,12 +110,12 @@ namespace ImageProcessor
 			}
 		}
 
-		private void SaveResultsToSheet(ExcelWorksheet sheet, Dictionary<string, CalculationSample> calculationSamples)
+		private static void SaveResultsToSheet(ExcelWorksheet sheet, Dictionary<string, CalculationSample> calculationSamples)
 		{
-			const int laborIntensityCol = 8;								// H
-			const int totalComplexityCol = laborIntensityCol + 1;           // I
-			const int calculatedComplexityCol = totalComplexityCol + 1;     // J
-			const int presumedComplexityCol = calculatedComplexityCol + 1;  // K
+			const int laborIntensityCol = 8; // H
+			const int totalComplexityCol = laborIntensityCol + 1; // I
+			const int calculatedComplexityCol = totalComplexityCol + 1; // J
+			const int presumedComplexityCol = calculatedComplexityCol + 1; // K
 
 			sheet.Cells[1, laborIntensityCol].Value = "T";
 			sheet.Cells[1, totalComplexityCol].Value = "H";
@@ -171,7 +180,8 @@ namespace ImageProcessor
 
 						ImageProcessingDll.DisposeCalculationResult(calculationResult);
 
-						return new ComplexityInfo(laborIntensityMinutes, totalComplexity, calculatedComplexity, presumedComplexity);
+						return new ComplexityInfo(laborIntensityMinutes, totalComplexity, calculatedComplexity,
+							presumedComplexity);
 					}
 				}
 			}
@@ -188,7 +198,9 @@ namespace ImageProcessor
 					Directory.Delete(_debugDirectoryPath, true);
 				Directory.CreateDirectory(_debugDirectoryPath);
 			}
-			catch { }
+			catch
+			{
+			}
 		}
 
 		private static Tuple<int, int> ParseImageLookupKey(string key)
@@ -209,6 +221,28 @@ namespace ImageProcessor
 			var height = int.Parse(keyTokens[1]);
 
 			return new Tuple<int, int>(width, height);
+		}
+
+		private string GetCopyFileName(string inputFilePath)
+		{
+			var baseDirectory = Path.GetDirectoryName(inputFilePath);
+			var fileNameWithoutExt = Path.GetFileNameWithoutExtension(inputFilePath);
+			var extension = Path.GetExtension(inputFilePath);
+			var fileNameWithSuffix = $"{fileNameWithoutExt}{GlobalConstants.ProcessedFileSuffix}{extension}";
+			var outputFileName = Path.Combine(baseDirectory, fileNameWithSuffix);
+			TryDeleteProcessedFile(outputFileName);
+
+			return outputFileName;
+		}
+		
+		private static void TryDeleteProcessedFile(string processedFileName)
+		{
+			try
+			{
+				if (File.Exists(processedFileName))
+					File.Delete(processedFileName);
+			}
+			catch { }
 		}
 	}
 }
